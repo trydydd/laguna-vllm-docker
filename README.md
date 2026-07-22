@@ -55,6 +55,7 @@ with defaults matching the vendor recipe:
 | `GPU_MEMORY_UTILIZATION` | `0.85` |
 | `TEMPERATURE` | `0.7` |
 | `TOP_P` | `0.95` |
+| `ENABLE_THINKING` | `true` |
 
 Set overrides in `docker-compose.yml`'s `environment:` block, or via
 `-e VAR=value` when running the image directly.
@@ -62,13 +63,12 @@ Set overrides in `docker-compose.yml`'s `environment:` block, or via
 ## Reasoning output
 
 The `poolside_v1` reasoning parser only splits `<think>...</think>` into the
-response's `reasoning` field when the request opts in. Without it, the model
-still emits its own `<think>` tags but the parser passes them through as raw
-text in `content`. Pass this on every request that should get separated
-reasoning:
-
-```json
-{
-  "chat_template_kwargs": {"enable_thinking": true}
-}
-```
+response's `reasoning` field when `enable_thinking` is set; otherwise the
+model still emits its own `<think>` tags but they pass through as raw text in
+`content`. The model's `generation_config.json` declares
+`enable_thinking: true` as its intended default, but vLLM doesn't read that
+automatically — `entrypoint.sh` passes it explicitly via
+`--default-chat-template-kwargs`, so it applies server-wide without every
+caller needing to set it. Set `ENABLE_THINKING=false` to disable by default;
+individual requests can still override with
+`"chat_template_kwargs": {"enable_thinking": false}`.
