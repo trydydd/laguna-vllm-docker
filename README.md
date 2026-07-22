@@ -58,3 +58,17 @@ with defaults matching the vendor recipe:
 
 Set overrides in `docker-compose.yml`'s `environment:` block, or via
 `-e VAR=value` when running the image directly.
+
+## Reasoning output
+
+The `poolside_v1` reasoning parser only splits `<think>...</think>` into the
+response's `reasoning` field when the request opts in. Without it, the model
+still emits its own `<think>` tags but the parser passes them through as raw
+text in `content`. Pass this on every request that should get separated
+reasoning:
+
+```json
+{
+  "chat_template_kwargs": {"enable_thinking": true}
+}
+```
