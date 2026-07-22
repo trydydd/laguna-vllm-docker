@@ -1,0 +1,22 @@
+services:
+  laguna:
+    build: .
+    image: laguna-nvfp4:latest
+    container_name: laguna-nvfp4
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      # Bind-mounts the host's existing Hugging Face cache so model
+      # downloads are reused across runs instead of living in a throwaway
+      # anonymous volume. HF_CACHE is written into .env by `make up`.
+      - ${HF_CACHE}:/root/.cache/huggingface
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
