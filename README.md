@@ -20,6 +20,7 @@ decoding.
 ## Usage
 
 ```bash
+make build   # build the image manually, no Compose
 make up      # builds the image, brings the container up via Compose
 make logs    # follow vLLM startup / serving logs
 make down    # stop the container
@@ -57,9 +58,3 @@ with defaults matching the vendor recipe:
 
 Set overrides in `docker-compose.yml`'s `environment:` block, or via
 `-e VAR=value` when running the image directly.
-
-## Manual build
-
-```bash
-make build   # docker build only, no Compose
-```
