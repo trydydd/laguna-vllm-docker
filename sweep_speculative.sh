@@ -11,7 +11,16 @@ INPUT_LEN=512
 OUTPUT_LEN=1024
 CONCURRENCY=32
 NUM_PROMPTS=$(( CONCURRENCY * 4 ))
-RESULTS_FILE=~/workspace/laguna-vllm-docker/spec_sweep_results_conc${CONCURRENCY}.txt
+# Set to "false" to disable thinking per-request via --extra-body; leave
+# empty/unset to omit the flag and use the server's own default.
+ENABLE_THINKING_REQUEST="${ENABLE_THINKING_REQUEST:-}"
+SUFFIX=""
+EXTRA_BODY_ARGS=()
+if [[ -n "${ENABLE_THINKING_REQUEST}" ]]; then
+    EXTRA_BODY_ARGS=(--extra-body "{\"chat_template_kwargs\":{\"enable_thinking\":${ENABLE_THINKING_REQUEST}}}")
+    SUFFIX="_think${ENABLE_THINKING_REQUEST}"
+fi
+RESULTS_FILE=~/workspace/laguna-vllm-docker/spec_sweep_results_conc${CONCURRENCY}${SUFFIX}.txt
 
 : > "${RESULTS_FILE}"
 printf "%6s %10s %8s %10s %10s\n" "spec_n" "out_tok/s" "ttft_ms" "accept_%" "accept_len" | tee -a "${RESULTS_FILE}"
@@ -46,7 +55,8 @@ for n in "${VALUES[@]}"; do
         --max-concurrency "${CONCURRENCY}" \
         --temperature 0 \
         --top-k 1 \
-        --ignore-eos 2>&1)
+        --ignore-eos \
+        "${EXTRA_BODY_ARGS[@]}" 2>&1)
 
     echo "${out}" >> "${RESULTS_FILE}.raw.${n}.log"
 
