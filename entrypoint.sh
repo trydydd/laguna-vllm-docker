@@ -20,6 +20,10 @@ GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.72}"
 TEMPERATURE="${TEMPERATURE:-0.7}"
 TOP_P="${TOP_P:-0.95}"
 ENABLE_THINKING="${ENABLE_THINKING:-true}"
+# Plain safetensors loading was taking ~7 minutes for the 67 GiB checkpoint
+# (auto-prefetch also disabled itself since the checkpoint exceeds 90% of
+# available RAM on EXT4). fastsafetensors parallelizes/GPU-directs the load.
+LOAD_FORMAT="${LOAD_FORMAT:-fastsafetensors}"
 
 # --max-num-seqs 32 is required: DFlash crashes vLLM at the default of 256.
 exec vllm serve "${MODEL}" \
@@ -32,6 +36,7 @@ exec vllm serve "${MODEL}" \
     --override-generation-config "{\"temperature\":${TEMPERATURE},\"top_p\":${TOP_P}}" \
     --max-num-seqs "${MAX_NUM_SEQS}" \
     --max-num-batched-tokens "${MAX_NUM_BATCHED_TOKENS}" \
+    --load-format "${LOAD_FORMAT}" \
     --max-model-len "${MAX_MODEL_LEN}" \
     --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION}" \
     --host "${HOST}" --port "${PORT}" \
