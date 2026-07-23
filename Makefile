@@ -9,6 +9,7 @@ build:
 
 .env:
 	echo "HF_CACHE=$$HOME/.cache/huggingface" > .env
+	echo "COMPILE_CACHE=$$HOME/.cache/laguna-vllm-compile" >> .env
 
 up: .env
 	docker compose up -d --build

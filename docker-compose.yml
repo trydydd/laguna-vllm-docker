@@ -11,6 +11,12 @@ services:
       # downloads are reused across runs instead of living in a throwaway
       # anonymous volume. HF_CACHE is written into .env by `make up`.
       - ${HF_CACHE}:/root/.cache/huggingface
+      # Without this, the Triton/Inductor JIT compile cache and CUDA graph
+      # capture live only in the container's own filesystem, so every
+      # `docker compose up` recreation pays that cost again from scratch
+      # (~10+ minutes) even though the model weights are already cached.
+      # COMPILE_CACHE is written into .env by `make up`.
+      - ${COMPILE_CACHE}:/root/.cache/vllm
     environment:
       - HF_TOKEN=${HF_TOKEN:-}
       - NUM_SPECULATIVE_TOKENS=${NUM_SPECULATIVE_TOKENS:-15}
