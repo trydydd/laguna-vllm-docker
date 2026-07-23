@@ -23,9 +23,20 @@ services:
       nofile:
         soft: 1048576
         hard: 1048576
+    # This box has unified CPU/GPU memory (119 GiB total, no separate VRAM),
+    # so a runaway vLLM process eats host RAM directly. A container-wide
+    # crash from a hard OOM kill here is recoverable (`docker compose up`);
+    # the host silently power-cycling because the OS ran out of memory
+    # entirely is not. mem_reservation is a soft target; mem_limit is the
+    # hard ceiling that leaves ~19 GiB for the OS, desktop session, and
+    # Docker daemon. Pair with GPU_MEMORY_UTILIZATION in entrypoint.sh so
+    # vLLM's own target stays under this ceiling.
     deploy:
       resources:
+        limits:
+          memory: 100g
         reservations:
+          memory: 88g
           devices:
             - driver: nvidia
               count: all

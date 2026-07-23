@@ -9,7 +9,10 @@ HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-8000}"
 MAX_MODEL_LEN="${MAX_MODEL_LEN:-262144}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-32}"
-GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.85}"
+# 0.72 of the 119 GiB unified memory pool (~86 GiB) stays under the
+# container's 100g mem_limit in docker-compose.yml, leaving headroom for
+# CUDA context/host overhead that isn't counted against this fraction.
+GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.72}"
 TEMPERATURE="${TEMPERATURE:-0.7}"
 TOP_P="${TOP_P:-0.95}"
 ENABLE_THINKING="${ENABLE_THINKING:-true}"

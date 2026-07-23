@@ -52,13 +52,26 @@ with defaults matching the vendor recipe:
 | `PORT` | `8000` |
 | `MAX_MODEL_LEN` | `262144` |
 | `MAX_NUM_SEQS` | `32` (DFlash crashes vLLM at the default of 256) |
-| `GPU_MEMORY_UTILIZATION` | `0.85` |
+| `GPU_MEMORY_UTILIZATION` | `0.72` |
 | `TEMPERATURE` | `0.7` |
 | `TOP_P` | `0.95` |
 | `ENABLE_THINKING` | `true` |
 
 Set overrides in `docker-compose.yml`'s `environment:` block, or via
 `-e VAR=value` when running the image directly.
+
+## Memory ceiling
+
+This box has unified CPU/GPU memory (119 GiB total, no separate VRAM), so
+`--gpu-memory-utilization` is really a fraction of *system* RAM, and a
+container that eats it all can take the whole host down instead of just
+getting OOM-killed. `docker-compose.yml` sets `mem_limit: 100g` (with
+`mem_reservation: 88g` as a soft target), leaving ~19 GiB for the OS, desktop
+session, and Docker daemon. `GPU_MEMORY_UTILIZATION` defaults to `0.72`
+(~86 GiB of the 119 GiB pool) to stay under that ceiling with room for CUDA
+context and host-side overhead that isn't counted in vLLM's own fraction. If
+you raise one, raise the other to match, and keep `mem_limit` a few GiB above
+`GPU_MEMORY_UTILIZATION`'s target — not equal to it.
 
 ## Reasoning output
 
