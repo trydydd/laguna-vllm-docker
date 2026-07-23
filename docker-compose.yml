@@ -13,6 +13,7 @@ services:
       - ${HF_CACHE}:/root/.cache/huggingface
     environment:
       - HF_TOKEN=${HF_TOKEN:-}
+      - NUM_SPECULATIVE_TOKENS=${NUM_SPECULATIVE_TOKENS:-15}
     # Matches this DGX Spark's known-working vLLM container config: without
     # privileged mode + host IPC, the CUDA driver rejects Triton's kernel
     # JIT/autotune calls with "operation not permitted" during profile_run,
