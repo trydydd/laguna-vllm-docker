@@ -9,11 +9,12 @@ cd ~/workspace/laguna-vllm-docker
 VALUES=(3 5 8 10 15 20 25)
 INPUT_LEN=512
 OUTPUT_LEN=1024
-NUM_PROMPTS=5
-RESULTS_FILE=~/workspace/laguna-vllm-docker/spec_sweep_results.txt
+CONCURRENCY=32
+NUM_PROMPTS=$(( CONCURRENCY * 4 ))
+RESULTS_FILE=~/workspace/laguna-vllm-docker/spec_sweep_results_conc${CONCURRENCY}.txt
 
 : > "${RESULTS_FILE}"
-printf "%6s %8s %8s %10s %10s\n" "spec_n" "tok/s" "ttft_ms" "accept_%" "accept_len" | tee -a "${RESULTS_FILE}"
+printf "%6s %10s %8s %10s %10s\n" "spec_n" "out_tok/s" "ttft_ms" "accept_%" "accept_len" | tee -a "${RESULTS_FILE}"
 
 wait_for_ready() {
     for _ in $(seq 1 180); do
@@ -42,7 +43,7 @@ for n in "${VALUES[@]}"; do
         --random-input-len "${INPUT_LEN}" \
         --random-output-len "${OUTPUT_LEN}" \
         --num-prompts "${NUM_PROMPTS}" \
-        --max-concurrency 1 \
+        --max-concurrency "${CONCURRENCY}" \
         --temperature 0 \
         --top-k 1 \
         --ignore-eos 2>&1)
@@ -54,7 +55,7 @@ for n in "${VALUES[@]}"; do
     accept_rate=$(echo "${out}" | grep "Acceptance rate" | awk '{print $NF}')
     accept_len=$(echo "${out}" | grep "Acceptance length" | awk '{print $NF}')
 
-    printf "%6s %8s %8s %10s %10s\n" "${n}" "${tok_s:-NA}" "${ttft:-NA}" "${accept_rate:-NA}" "${accept_len:-NA}" | tee -a "${RESULTS_FILE}"
+    printf "%6s %10s %8s %10s %10s\n" "${n}" "${tok_s:-NA}" "${ttft:-NA}" "${accept_rate:-NA}" "${accept_len:-NA}" | tee -a "${RESULTS_FILE}"
 done
 
 echo "Full results: ${RESULTS_FILE}"
